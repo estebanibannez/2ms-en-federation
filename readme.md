@@ -27,5 +27,7 @@ Para crear el supergrafo
 - npx rover supergraph compose --config ./supergraph-config.yaml > supergraph.graphql
 
   ```md
-  <img src="/assets/images/screenshot.png" alt="esquema"/>
+  ![alt text](assets/images/screenshot.png)
   ```
+
+<img src="/assets/images/screenshot.png" alt="esquema"/>
