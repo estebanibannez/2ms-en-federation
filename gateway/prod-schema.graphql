@@ -1,0 +1,111 @@
+
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.2", for: EXECUTION)
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @join__field(graph: join__Graph!, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+enum Difficulty
+  @join__type(graph: MS_TWO)
+{
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+scalar join__FieldSet
+
+enum join__Graph {
+  MS_ONE @join__graph(name: "ms-one", url: "http://localhost:4001")
+  MS_TWO @join__graph(name: "ms-two", url: "http://localhost:4002")
+}
+
+type Lift
+  @join__type(graph: MS_ONE, key: "id")
+  @join__type(graph: MS_TWO, key: "id")
+{
+  id: ID!
+  name: String! @join__field(graph: MS_ONE)
+  status: LiftStatus! @join__field(graph: MS_ONE)
+  capacity: Int! @join__field(graph: MS_ONE)
+  night: Boolean! @join__field(graph: MS_ONE)
+  elevationGain: Int! @join__field(graph: MS_ONE)
+  trailAccess: [Trail!]! @join__field(graph: MS_ONE)
+  easyWayDown: Trail! @join__field(graph: MS_TWO)
+}
+
+enum LiftStatus
+  @join__type(graph: MS_ONE)
+{
+  OPEN
+  HOLD
+  CLOSED
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Mutation
+  @join__type(graph: MS_ONE)
+  @join__type(graph: MS_TWO)
+{
+  setLiftStatus(id: ID!, status: LiftStatus!): Lift! @join__field(graph: MS_ONE)
+  setTrailStatus(id: ID!, status: TrailStatus!): Trail! @join__field(graph: MS_TWO)
+}
+
+type Query
+  @join__type(graph: MS_ONE)
+  @join__type(graph: MS_TWO)
+{
+  allLifts(status: LiftStatus): [Lift!]! @join__field(graph: MS_ONE)
+  Lift(id: ID!): Lift! @join__field(graph: MS_ONE)
+  liftCount(status: LiftStatus): Int! @join__field(graph: MS_ONE)
+  allTrails(status: TrailStatus): [Trail!]! @join__field(graph: MS_TWO)
+  Trail(id: ID!): Trail! @join__field(graph: MS_TWO)
+  trailCount(status: TrailStatus): Int! @join__field(graph: MS_TWO)
+}
+
+type Trail
+  @join__type(graph: MS_ONE, key: "id")
+  @join__type(graph: MS_TWO, key: "id")
+{
+  id: ID!
+  liftAccess: [Lift!]! @join__field(graph: MS_ONE)
+  name: String! @join__field(graph: MS_TWO)
+  status: TrailStatus! @join__field(graph: MS_TWO)
+  difficulty: Difficulty! @join__field(graph: MS_TWO)
+  groomed: Boolean! @join__field(graph: MS_TWO)
+  trees: Boolean! @join__field(graph: MS_TWO)
+  night: Boolean! @join__field(graph: MS_TWO)
+}
+
+enum TrailStatus
+  @join__type(graph: MS_TWO)
+{
+  OPEN
+  CLOSED
+}
